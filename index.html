@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>sp 3.6 preview</title>
+    <script src="lib/spine-widget.js"></script>
+</head>
+<body>
+    <select id="modelSelector"></select>
+    <div id="spine-widget"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let folder = `spine/`;
+            let defaultAnimationName = "eye_idle";
+            let defaultSkinName = "normal";
+            let widgetDiv = document.getElementById("spine-widget");
+            let modelSelector = document.getElementById("modelSelector");
+
+            function cargarOpcionesDesdeJson() {
+                fetch('archivos_en_carpeta.json') // Ajusta la ruta al archivo JSON según sea necesario
+                    .then(response => response.json())
+                    .then(data => {
+                        data.archivos.forEach(function(archivo) {
+                            let opcion = new Option(archivo.split('.')[0], archivo.split('.')[0]); // Asumiendo que quieres el nombre sin la extensión
+                            modelSelector.add(opcion);
+                        });
+
+                        // Establece un escuchador para cargar el modelo seleccionado
+                        modelSelector.addEventListener("change", function() {
+                            modelName = this.value; // Actualiza modelName con la selección
+                            LimpiarWidgetDiv(); // Limpia el contenedor antes de cargar un nuevo widget
+                            LoadAnimation(); // Llama a LoadAnimation cada vez que se cambie la selección
+                        });
+
+                        // Inicializa la carga con el primer modelo en el select si existe
+                        if (data.archivos.length > 0) {
+                            modelName = data.archivos[0].split('.')[0]; // Asume el primer archivo como predeterminado
+                            LoadAnimation();
+                        }
+                    })
+                    .catch(error => console.error('Error al cargar los archivos: ', error));
+            }
+
+            function LimpiarWidgetDiv() {
+                // Asumiendo que la API de Spine Widget no proporciona un método de limpieza,
+                // simplemente limpiamos el contenido interno de widgetDiv.
+                widgetDiv.innerHTML = '';
+                // Si existe un método específico de limpieza en la API, deberías llamarlo aquí.
+            }
+
+            function LoadAnimation() {
+                if (modelName != null) {
+                    new spine.SpineWidget("spine-widget", {
+                        atlas: folder + modelName + ".atlas",
+                        skel: modelName + ".skel",
+                        backgroundColor: "#00000000",
+                        premultipliedAlpha: true,
+                        fitToCanvas: true,
+                        loop: true,
+                        success: function (widget) {
+                            let animations = widget.skeleton.data.animations;
+                            let skins = widget.skeleton.data.skins;
+                            if (animations.some(search => search.name === defaultAnimationName))
+                                widget.setAnimation(defaultAnimationName);
+                            if (skins.some(search => search.name === defaultSkinName))
+                                widget.setSkinByName(defaultSkinName);
+                            console.log(widget);
+                            widgetDiv.style.position = "absolute";
+                            widgetDiv.style.width = `${widget.bounds.size.x}px`;
+                            widgetDiv.style.height = `${widget.bounds.size.y}px`;
+                        },
+                        error: function (player, reason) {
+                            widgetDiv.setAttribute("error", reason)
+                        }
+                    })
+                }
+            }
+
+            cargarOpcionesDesdeJson(); // Inicia la carga de opciones al cargar la página
+        });
+    </script>
+</body>
+</html>
