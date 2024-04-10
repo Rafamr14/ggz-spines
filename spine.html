@@ -260,7 +260,7 @@
                 if (modelName != null) {
                     var existingButtonsDiv = document.getElementById('botonesanimacion');
                     if (existingButtonsDiv) {
-                        existingButtonsDiv.remove(); // Elimina el contenedor de botones anterior si existe
+                        existingButtonsDiv.remove(); 
                     }
                     new spine.SpineWidget(widgetDiv.id, {
                         atlas: folder + modelName + ".atlas",
@@ -271,20 +271,17 @@
                         loop: true,
                         success: function(widget) {
                             commonSuccess(widget, widgetDiv);
-                            spineWidget = widget; // Almacenar la referencia global al widget
+                            spineWidget = widget;
 
-                            // Encuentra el contenedor de widgets
                             var widgetContainer = document.getElementById('widget-container');
 
-                            // Crear contenedor para los botones
                             var buttonsDiv = document.createElement('div');
-                            buttonsDiv.style.display = 'flex'; // Asegura que los botones estén en una fila
+                            buttonsDiv.style.display = 'flex';
                             buttonsDiv.style.flexDirection = 'row';
-                            buttonsDiv.style.justifyContent = 'center'; // Centra los botones si quieres
-                            buttonsDiv.style.marginBottom = '10px'; // Margen entre los botones y los widgets
+                            buttonsDiv.style.justifyContent = 'center';
+                            buttonsDiv.style.marginBottom = '10px';
                             buttonsDiv.id = 'botonesanimacion'
 
-                            // Crear botones para cada animación
                             var animations = widget.skeleton.data.animations;
                             animations.forEach(function(animation) {
                                 var btn = document.createElement('button');
@@ -293,7 +290,6 @@
                                 buttonsDiv.appendChild(btn);
                             });
 
-                            // Inserta el contenedor de botones antes del contenedor de widgets
                             widgetContainer.parentNode.insertBefore(buttonsDiv, widgetContainer);
                         },
                         error: function(player, reason) {
@@ -361,13 +357,9 @@
 
             let canvas = document.querySelector("canvas");
 
-            // Verificar si el canvas existe
             if (canvas) {
                 aplicarEstiloYEventos(canvas);
             } else {
-                // Si el canvas no existe inmediatamente, podría necesitar escuchar un evento
-                // o usar una mutación observer para detectar cuando se crea
-                // Esto es solo un ejemplo de cómo podrías implementar una espera para el canvas
                 const observer = new MutationObserver((mutations) => {
                     for (let mutation of mutations) {
                         if (mutation.addedNodes.length) {
@@ -385,40 +377,31 @@
 
             var widgetContainer = document.getElementById("widget-container");
 
-            // Inicializa las variables para el seguimiento de la posición
             var posX = 0, posY = 0, mouseX = 0, mouseY = 0;
 
             widgetContainer.onmousedown = function(e) {
-                e.preventDefault(); // Prevenir cualquier acción por defecto del navegador
-
-                // Obtener la posición inicial del mouse
+                e.preventDefault();
                 mouseX = e.clientX;
                 mouseY = e.clientY;
 
-                // Eventos para manejar el movimiento y el levantamiento del mouse
                 document.onmouseup = closeDragElement;
                 document.onmousemove = elementDrag;
             };
 
             function elementDrag(e) {
-                // Calcular la nueva posición del cursor
                 posX = mouseX - e.clientX;
                 posY = mouseY - e.clientY;
                 mouseX = e.clientX;
                 mouseY = e.clientY;
 
-                // Establecer la nueva posición del contenedor
                 widgetContainer.style.top = (widgetContainer.offsetTop - posY) + "px";
                 widgetContainer.style.left = (widgetContainer.offsetLeft - posX) + "px";
             }
 
             function closeDragElement() {
-                // Detener el movimiento cuando se suelta el botón del mouse
                 document.onmouseup = null;
                 document.onmousemove = null;
             }
-
-
 
             cargarOpcionesDesdeJsonSpine();
             cargarOpcionesDesdeJsonCutIn();
