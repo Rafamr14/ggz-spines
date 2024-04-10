@@ -112,15 +112,16 @@
                 <label for="sliderTamanoCanvas">Ajustar tama&ntilde;o de modelo:</label>
                 <input type="range" min="1" max="20" value="1" class="slider" id="sliderTamanoCanvas">
             </div>
+
         </div>
         <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 flex-grow-1">
             <div id="widget-container" class="widget-container">
-                <div id="spine-widget-spine" class="spine-widget"></div>
-                <div id="spine-widget-cutin" class="spine-widget"></div>
-                <div id="spine-widget-artificial" class="spine-widget"></div>
-                <div id="spine-widget-Corssfaction2" class="spine-widget"></div>
-                <div id="spine-widget-Crossfaction3" class="spine-widget"></div>
-                <div id="spine-widget-faction" class="spine-widget"></div>
+                <div id="spine-widget-spine" class="spine-widget mt-4"></div>
+                <div id="spine-widget-cutin" class="spine-widget mt-4"></div>
+                <div id="spine-widget-artificial" class="spine-widget mt-4"></div>
+                <div id="spine-widget-Corssfaction2" class="spine-widget mt-4"></div>
+                <div id="spine-widget-Crossfaction3" class="spine-widget mt-4"></div>
+                <div id="spine-widget-faction" class="spine-widget mt-4"></div>
             </div>
         </div>
 
@@ -129,8 +130,9 @@
 </div>
 
 <script>
-
+    var spineWidget;
         document.addEventListener("DOMContentLoaded", function() {
+
             let folderSpine = `spine/`;
             let folderCutIn = `cutin/`;
             let folderArtificial = `artificial/`;
@@ -256,6 +258,10 @@
 
             function loadAnimation(widgetDiv, folder, modelName) {
                 if (modelName != null) {
+                    var existingButtonsDiv = document.getElementById('botonesanimacion');
+                    if (existingButtonsDiv) {
+                        existingButtonsDiv.remove(); // Elimina el contenedor de botones anterior si existe
+                    }
                     new spine.SpineWidget(widgetDiv.id, {
                         atlas: folder + modelName + ".atlas",
                         skel: modelName + ".skel",
@@ -265,6 +271,30 @@
                         loop: true,
                         success: function(widget) {
                             commonSuccess(widget, widgetDiv);
+                            spineWidget = widget; // Almacenar la referencia global al widget
+
+                            // Encuentra el contenedor de widgets
+                            var widgetContainer = document.getElementById('widget-container');
+
+                            // Crear contenedor para los botones
+                            var buttonsDiv = document.createElement('div');
+                            buttonsDiv.style.display = 'flex'; // Asegura que los botones estén en una fila
+                            buttonsDiv.style.flexDirection = 'row';
+                            buttonsDiv.style.justifyContent = 'center'; // Centra los botones si quieres
+                            buttonsDiv.style.marginBottom = '10px'; // Margen entre los botones y los widgets
+                            buttonsDiv.id = 'botonesanimacion'
+
+                            // Crear botones para cada animación
+                            var animations = widget.skeleton.data.animations;
+                            animations.forEach(function(animation) {
+                                var btn = document.createElement('button');
+                                btn.innerHTML = animation.name;
+                                btn.onclick = function() { changeAnimation(animation.name); };
+                                buttonsDiv.appendChild(btn);
+                            });
+
+                            // Inserta el contenedor de botones antes del contenedor de widgets
+                            widgetContainer.parentNode.insertBefore(buttonsDiv, widgetContainer);
                         },
                         error: function(player, reason) {
                             widgetDiv.setAttribute("error", reason)
@@ -272,6 +302,9 @@
                     });
                 }
             }
+
+
+
 
             function commonSuccess(widget, widgetDiv) {
                 let animations = widget.skeleton.data.animations;
@@ -307,6 +340,7 @@
                 let widgetDivCorssfaction2 = document.getElementById("spine-widget-Corssfaction2");
                 let widgetDivcrossfaction3 = document.getElementById("spine-widget-Crossfaction3");
                 let widgetDivfaction = document.getElementById("spine-widget-faction");
+                let IdBotonesAnimacion = document.getElementById("botonesanimacion");
 
                 widgetDivSpine.innerHTML = '';
                 widgetDivCutIn.innerHTML = '';
@@ -314,6 +348,7 @@
                 widgetDivCorssfaction2.innerHTML = '';
                 widgetDivcrossfaction3.innerHTML = '';
                 widgetDivfaction.innerHTML = '';
+                IdBotonesAnimacion.innerHTML = '';
 
                 widgetDivSpine.style.display = "none";
                 widgetDivCutIn.style.display = "none";
@@ -321,6 +356,7 @@
                 widgetDivCorssfaction2.style.display = "none";
                 widgetDivcrossfaction3.style.display = "none";
                 widgetDivfaction.style.display = "none";
+                IdBotonesAnimacion.style.display = "none";
             }
 
             let canvas = document.querySelector("canvas");
@@ -391,7 +427,11 @@
             cargarOpcionesDesdeJsoncrossfaction3();
             cargarOpcionesDesdeJsonfaction();
         });
-
+    function changeAnimation(animationName) {
+        if (spineWidget && spineWidget.state) {
+            spineWidget.state.setAnimation(0, animationName, true);
+        }
+    }
 
 </script>
 
