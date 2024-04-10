@@ -94,6 +94,18 @@
                     <h4>Spineres/artificial</h4>
                     <select id="modelSelectorArtificial" class="form-select"></select>
                 </div>
+                <div class="sidebar-section">
+                    <h4>Spineres/faction</h4>
+                    <select id="modelSelectorfaction" class="form-select"></select>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Spineres/Corssfaction2</h4>
+                    <select id="modelSelectorCorssfaction2" class="form-select"></select>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Spineres/Crossfaction3</h4>
+                    <select id="modelSelectorcrossfaction3" class="form-select"></select>
+                </div>
                 <div class="sidebar-section mt-3">
                     <input type="button" value="Limpiar" id="btnLimpiar" class="btn btn-primary">
                 </div>
@@ -106,6 +118,9 @@
                 <div id="spine-widget-spine" class="spine-widget"></div>
                 <div id="spine-widget-cutin" class="spine-widget"></div>
                 <div id="spine-widget-artificial" class="spine-widget"></div>
+                <div id="spine-widget-Corssfaction2" class="spine-widget"></div>
+                <div id="spine-widget-Crossfaction3" class="spine-widget"></div>
+                <div id="spine-widget-faction" class="spine-widget"></div>
             </div>
         </div>
 
@@ -119,14 +134,23 @@
             let folderSpine = `spine/`;
             let folderCutIn = `cutin/`;
             let folderArtificial = `artificial/`;
+            let folderCorssfaction2 = `Corssfaction2/`;
+            let foldercrossfaction3 = `crossfaction3/`;
+            let folderfaction = `faction/`;
             let defaultAnimationName = "eye_idle";
             let defaultSkinName = "normal";
             let widgetDivSpine = document.getElementById("spine-widget-spine");
             let widgetDivCutIn = document.getElementById("spine-widget-cutin");
+            let widgetDivCorssfaction2 = document.getElementById("spine-widget-Corssfaction2");
+            let widgetDivcrossfaction3 = document.getElementById("spine-widget-Crossfaction3");
             let widgetDivartificial = document.getElementById("spine-widget-artificial");
+            let widgetDivfaction = document.getElementById("spine-widget-faction");
             let modelSelectorSpine = document.getElementById("modelSelectorSpine");
             let modelSelectorCutIn = document.getElementById("modelSelectorCutIn");
             let modelSelectorArtificial = document.getElementById("modelSelectorArtificial");
+            let modelSelectorCorssfaction2 = document.getElementById("modelSelectorCorssfaction2");
+            let modelSelectorcrossfaction3 = document.getElementById("modelSelectorcrossfaction3");
+            let modelSelectorfaction = document.getElementById("modelSelectorfaction");
 
             function cargarOpcionesDesdeJsonSpine() {
                 fetch('archivos_en_carpeta.json')
@@ -156,7 +180,33 @@
                     })
                     .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
             }
-
+            function cargarOpcionesDesdeJsonCorssfaction2() {
+                fetch('ggz_corssfaction2.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        cargarOpciones(modelSelectorCorssfaction2, data.archivos, cargarCorssfaction2);
+                        limpiarWidgetDiv()
+                    })
+                    .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
+            }
+            function cargarOpcionesDesdeJsoncrossfaction3() {
+                fetch('ggz_crossfaction3.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        cargarOpciones(modelSelectorcrossfaction3, data.archivos, cargarCrossfaction3);
+                        limpiarWidgetDiv()
+                    })
+                    .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
+            }
+            function cargarOpcionesDesdeJsonfaction() {
+                fetch('ggz_faction.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        cargarOpciones(modelSelectorfaction, data.archivos, cargarfaction);
+                        limpiarWidgetDiv()
+                    })
+                    .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
+            }
             function cargarOpciones(selector, archivos, callbackCarga) {
                 archivos.forEach(function(archivo) {
                     let opcion = new Option(archivo.split('.')[0], archivo.split('.')[0]);
@@ -190,6 +240,18 @@
             function cargarArtificial(modelName) {
                 limpiarWidgetDiv(widgetDivartificial);
                 loadAnimation(widgetDivartificial, folderArtificial, modelName);
+            }
+            function cargarCorssfaction2(modelName) {
+                limpiarWidgetDiv(widgetDivCorssfaction2);
+                loadAnimation(widgetDivCorssfaction2, folderCorssfaction2, modelName);
+            }
+            function cargarCrossfaction3(modelName) {
+                limpiarWidgetDiv(widgetDivcrossfaction3);
+                loadAnimation(widgetDivcrossfaction3, foldercrossfaction3, modelName);
+            }
+            function cargarfaction(modelName) {
+                limpiarWidgetDiv(widgetDivfaction);
+                loadAnimation(widgetDivfaction, folderfaction, modelName);
             }
 
             function loadAnimation(widgetDiv, folder, modelName) {
@@ -228,6 +290,9 @@
             document.getElementById("spine-widget-spine").style.display = "none";
             document.getElementById("spine-widget-cutin").style.display = "none";
             document.getElementById("spine-widget-artificial").style.display = "none";
+            document.getElementById("spine-widget-Corssfaction2").style.display = "none";
+            document.getElementById("spine-widget-Crossfaction3").style.display = "none";
+            document.getElementById("spine-widget-faction").style.display = "none";
 
             let btnLimpiar = document.getElementById("btnLimpiar");
 
@@ -239,14 +304,23 @@
                 let widgetDivSpine = document.getElementById("spine-widget-spine");
                 let widgetDivCutIn = document.getElementById("spine-widget-cutin");
                 let widgetDivArtificial = document.getElementById("spine-widget-artificial");
+                let widgetDivCorssfaction2 = document.getElementById("spine-widget-Corssfaction2");
+                let widgetDivcrossfaction3 = document.getElementById("spine-widget-Crossfaction3");
+                let widgetDivfaction = document.getElementById("spine-widget-faction");
 
                 widgetDivSpine.innerHTML = '';
                 widgetDivCutIn.innerHTML = '';
                 widgetDivArtificial.innerHTML = '';
+                widgetDivCorssfaction2.innerHTML = '';
+                widgetDivcrossfaction3.innerHTML = '';
+                widgetDivfaction.innerHTML = '';
 
                 widgetDivSpine.style.display = "none";
                 widgetDivCutIn.style.display = "none";
                 widgetDivArtificial.style.display = "none";
+                widgetDivCorssfaction2.style.display = "none";
+                widgetDivcrossfaction3.style.display = "none";
+                widgetDivfaction.style.display = "none";
             }
 
             let canvas = document.querySelector("canvas");
@@ -313,6 +387,9 @@
             cargarOpcionesDesdeJsonSpine();
             cargarOpcionesDesdeJsonCutIn();
             cargarOpcionesDesdeJsonArtificial();
+            cargarOpcionesDesdeJsonCorssfaction2();
+            cargarOpcionesDesdeJsoncrossfaction3();
+            cargarOpcionesDesdeJsonfaction();
         });
 
 
