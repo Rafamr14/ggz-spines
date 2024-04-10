@@ -28,78 +28,156 @@
         </div>
     </div>
 </nav>
-    <select id="modelSelector"></select>
-    <div id="spine-widget"></div>
-    <script>
+<div class="row mt-2">
+    <div class="col-2">
+        <h4>Spineres/Poster</h4>
+        <select id="modelSelectorSpine"></select>
+    </div>
+    <div class="col-2">
+        <h4>Spineres/cutin</h4>
+        <select id="modelSelectorCutIn"></select>
+    </div>
+    <div class="col-2 mt-3">
+        <input type="button" value="Limpiar" id="btnLimpiar">
+    </div>
+</div>
+
+
+
+    <div id="widget-container" style="position: relative; height: 500px; width: 500px;">
+        <div id="spine-widget-spine"></div>
+        <div id="spine-widget-cutin"></div>
+    </div>
+<script>
+
         document.addEventListener("DOMContentLoaded", function() {
-            let folder = `spine/`;
+            let folderSpine = `spine/`;
+            let folderCutIn = `cutin/`;
             let defaultAnimationName = "eye_idle";
             let defaultSkinName = "normal";
-            let widgetDiv = document.getElementById("spine-widget");
-            let modelSelector = document.getElementById("modelSelector");
+            let widgetDivSpine = document.getElementById("spine-widget-spine");
+            let widgetDivCutIn = document.getElementById("spine-widget-cutin");
+            let modelSelectorSpine = document.getElementById("modelSelectorSpine");
+            let modelSelectorCutIn = document.getElementById("modelSelectorCutIn");
 
-            function cargarOpcionesDesdeJson() {
-                fetch('archivos_en_carpeta.json') // Ajusta la ruta al archivo JSON según sea necesario
+            // Cargar opciones desde JSON para el primer widget
+            function cargarOpcionesDesdeJsonSpine() {
+                fetch('archivos_en_carpeta.json')
                     .then(response => response.json())
                     .then(data => {
-                        data.archivos.forEach(function(archivo) {
-                            let opcion = new Option(archivo.split('.')[0], archivo.split('.')[0]); // Asumiendo que quieres el nombre sin la extensión
-                            modelSelector.add(opcion);
-                        });
-
-                        // Establece un escuchador para cargar el modelo seleccionado
-                        modelSelector.addEventListener("change", function() {
-                            modelName = this.value; // Actualiza modelName con la selección
-                            LimpiarWidgetDiv(); // Limpia el contenedor antes de cargar un nuevo widget
-                            LoadAnimation(); // Llama a LoadAnimation cada vez que se cambie la selección
-                        });
-
-                        // Inicializa la carga con el primer modelo en el select si existe
-                        if (data.archivos.length > 0) {
-                            modelName = data.archivos[0].split('.')[0]; // Asume el primer archivo como predeterminado
-                            LoadAnimation();
-                        }
+                        cargarOpciones(modelSelectorSpine, data.archivos, cargarSpine);
+                        limpiarWidgetDiv()
                     })
-                    .catch(error => console.error('Error al cargar los archivos: ', error));
+                    .catch(error => console.error('Error al cargar los archivos de Spine: ', error));
             }
 
-            function LimpiarWidgetDiv() {
-                // Asumiendo que la API de Spine Widget no proporciona un método de limpieza,
-                // simplemente limpiamos el contenido interno de widgetDiv.
+            // Cargar opciones desde JSON para el segundo widget (CutIn)
+            function cargarOpcionesDesdeJsonCutIn() {
+                fetch('ggz_cutin.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        cargarOpciones(modelSelectorCutIn, data.archivos, cargarCutIn);
+                        limpiarWidgetDiv()
+                    })
+                    .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
+            }
+
+            // Función genérica para cargar opciones en el selector
+            function cargarOpciones(selector, archivos, callbackCarga) {
+                archivos.forEach(function(archivo) {
+                    let opcion = new Option(archivo.split('.')[0], archivo.split('.')[0]);
+                    selector.add(opcion);
+                });
+
+                selector.addEventListener("change", function() {
+                    let modelName = this.value;
+                    callbackCarga(modelName);
+                });
+
+                if (archivos.length > 0) {
+                    let modelName = archivos[0].split('.')[0];
+                    callbackCarga(modelName);
+                }
+            }
+
+            // Funciones específicas para limpiar el widgetDiv y cargar la animación
+            function limpiarWidgetDiv(widgetDiv) {
                 widgetDiv.innerHTML = '';
-                // Si existe un método específico de limpieza en la API, deberías llamarlo aquí.
             }
 
-            function LoadAnimation() {
+            function cargarSpine(modelName) {
+                limpiarWidgetDiv(widgetDivSpine);
+                loadAnimation(widgetDivSpine, folderSpine, modelName);
+            }
+
+            function cargarCutIn(modelName) {
+                limpiarWidgetDiv(widgetDivCutIn);
+                loadAnimation(widgetDivCutIn, folderCutIn, modelName);
+            }
+
+            // Función unificada para cargar la animación
+            function loadAnimation(widgetDiv, folder, modelName) {
                 if (modelName != null) {
-                    new spine.SpineWidget("spine-widget", {
+                    new spine.SpineWidget(widgetDiv.id, {
                         atlas: folder + modelName + ".atlas",
                         skel: modelName + ".skel",
                         backgroundColor: "#00000000",
                         premultipliedAlpha: true,
                         fitToCanvas: true,
                         loop: true,
-                        success: function (widget) {
-                            let animations = widget.skeleton.data.animations;
-                            let skins = widget.skeleton.data.skins;
-                            if (animations.some(search => search.name === defaultAnimationName))
-                                widget.setAnimation(defaultAnimationName);
-                            if (skins.some(search => search.name === defaultSkinName))
-                                widget.setSkinByName(defaultSkinName);
-                            console.log(widget);
-                            widgetDiv.style.position = "absolute";
-                            widgetDiv.style.width = `${widget.bounds.size.x}px`;
-                            widgetDiv.style.height = `${widget.bounds.size.y}px`;
+                        success: function(widget) {
+                            // Configuración común del éxito de carga
+                            commonSuccess(widget, widgetDiv);
                         },
-                        error: function (player, reason) {
+                        error: function(player, reason) {
                             widgetDiv.setAttribute("error", reason)
                         }
-                    })
+                    });
                 }
             }
 
-            cargarOpcionesDesdeJson();
+            function commonSuccess(widget, widgetDiv) {
+                let animations = widget.skeleton.data.animations;
+                let skins = widget.skeleton.data.skins;
+                if (animations.some(search => search.name === defaultAnimationName))
+                    widget.setAnimation(defaultAnimationName);
+                if (skins.some(search => search.name === defaultSkinName))
+                    widget.setSkinByName(defaultSkinName);
+                console.log(widget);
+                widgetDiv.style.position = "absolute";
+                widgetDiv.style.display = "block"; // Asegura que el widget sea visible
+                widgetDiv.style.width = `${widget.bounds.size.x}px`;
+                widgetDiv.style.height = `${widget.bounds.size.y}px`;
+            }
+
+// Inicialmente ocultar ambos divs de los widgets
+            document.getElementById("spine-widget-spine").style.display = "none";
+            document.getElementById("spine-widget-cutin").style.display = "none";
+
+            let btnLimpiar = document.getElementById("btnLimpiar");
+
+            // Evento de clic para el botón de limpiar
+            btnLimpiar.addEventListener("click", function() {
+                limpiarWidgets();
+            });
+
+            function limpiarWidgets() {
+                // Obtén los div de los widgets
+                let widgetDivSpine = document.getElementById("spine-widget-spine");
+                let widgetDivCutIn = document.getElementById("spine-widget-cutin");
+
+                // Limpia el contenido interno de cada div
+                widgetDivSpine.innerHTML = '';
+                widgetDivCutIn.innerHTML = '';
+
+                // Opcional: Oculta los divs después de limpiarlos
+                widgetDivSpine.style.display = "none";
+                widgetDivCutIn.style.display = "none";
+            }
+            cargarOpcionesDesdeJsonSpine();
+            cargarOpcionesDesdeJsonCutIn();
         });
+
     </script>
 </body>
 </html>
