@@ -2,8 +2,57 @@
 <html lang="en">
 <head>
     <title>Honkai Gakuen 2 Spine Viewer</title>
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"></head>
+<style>
+    .sidebar-section {
+        margin-bottom: 1rem;
+    }
 
+    .form-select {
+        width: 100%;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+    .flex-grow-1 {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .widget-container {
+        position: absolute;
+        flex-grow: 1;
+        width: 100%;
+        min-height: 0;
+    }
+    .spine-widget {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+
+    .container-fluid, .row {
+        height: 100%;
+    }
+
+    .bg-light {
+        min-height: 100vh;
+    }
+
+</style>
 <script src="lib/spine-widget.js"></script>
 </head>
 <body>
@@ -28,39 +77,57 @@
         </div>
     </div>
 </nav>
-<div class="row mt-2">
-    <div class="col-2">
-        <h4>Spineres/Poster</h4>
-        <select id="modelSelectorSpine"></select>
-    </div>
-    <div class="col-2">
-        <h4>Spineres/cutin</h4>
-        <select id="modelSelectorCutIn"></select>
-    </div>
-    <div class="col-2 mt-3">
-        <input type="button" value="Limpiar" id="btnLimpiar">
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar sticky-top">
+            <div class="position-sticky pt-3">
+                <div class="sidebar-section">
+                    <h4>Spineres/Poster</h4>
+                    <select id="modelSelectorSpine" class="form-select"></select>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Spineres/cutin</h4>
+                    <select id="modelSelectorCutIn" class="form-select"></select>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Spineres/artificial</h4>
+                    <select id="modelSelectorArtificial" class="form-select"></select>
+                </div>
+                <div class="sidebar-section mt-3">
+                    <input type="button" value="Limpiar" id="btnLimpiar" class="btn btn-primary">
+                </div>
+                <label for="sliderTamanoCanvas">Ajustar tama&ntilde;o de modelo:</label>
+                <input type="range" min="1" max="20" value="1" class="slider" id="sliderTamanoCanvas">
+            </div>
+        </div>
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 flex-grow-1">
+            <div id="widget-container" class="widget-container">
+                <div id="spine-widget-spine" class="spine-widget"></div>
+                <div id="spine-widget-cutin" class="spine-widget"></div>
+                <div id="spine-widget-artificial" class="spine-widget"></div>
+            </div>
+        </div>
+
+
     </div>
 </div>
 
-
-
-    <div id="widget-container" style="position: relative; height: 500px; width: 500px;">
-        <div id="spine-widget-spine"></div>
-        <div id="spine-widget-cutin"></div>
-    </div>
 <script>
 
         document.addEventListener("DOMContentLoaded", function() {
             let folderSpine = `spine/`;
             let folderCutIn = `cutin/`;
+            let folderArtificial = `artificial/`;
             let defaultAnimationName = "eye_idle";
             let defaultSkinName = "normal";
             let widgetDivSpine = document.getElementById("spine-widget-spine");
             let widgetDivCutIn = document.getElementById("spine-widget-cutin");
+            let widgetDivartificial = document.getElementById("spine-widget-artificial");
             let modelSelectorSpine = document.getElementById("modelSelectorSpine");
             let modelSelectorCutIn = document.getElementById("modelSelectorCutIn");
+            let modelSelectorArtificial = document.getElementById("modelSelectorArtificial");
 
-            // Cargar opciones desde JSON para el primer widget
             function cargarOpcionesDesdeJsonSpine() {
                 fetch('archivos_en_carpeta.json')
                     .then(response => response.json())
@@ -71,7 +138,6 @@
                     .catch(error => console.error('Error al cargar los archivos de Spine: ', error));
             }
 
-            // Cargar opciones desde JSON para el segundo widget (CutIn)
             function cargarOpcionesDesdeJsonCutIn() {
                 fetch('ggz_cutin.json')
                     .then(response => response.json())
@@ -81,8 +147,16 @@
                     })
                     .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
             }
+            function cargarOpcionesDesdeJsonArtificial() {
+                fetch('ggz_artificial.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        cargarOpciones(modelSelectorArtificial, data.archivos, cargarArtificial);
+                        limpiarWidgetDiv()
+                    })
+                    .catch(error => console.error('Error al cargar los archivos de CutIn: ', error));
+            }
 
-            // Función genérica para cargar opciones en el selector
             function cargarOpciones(selector, archivos, callbackCarga) {
                 archivos.forEach(function(archivo) {
                     let opcion = new Option(archivo.split('.')[0], archivo.split('.')[0]);
@@ -100,7 +174,6 @@
                 }
             }
 
-            // Funciones específicas para limpiar el widgetDiv y cargar la animación
             function limpiarWidgetDiv(widgetDiv) {
                 widgetDiv.innerHTML = '';
             }
@@ -114,8 +187,11 @@
                 limpiarWidgetDiv(widgetDivCutIn);
                 loadAnimation(widgetDivCutIn, folderCutIn, modelName);
             }
+            function cargarArtificial(modelName) {
+                limpiarWidgetDiv(widgetDivartificial);
+                loadAnimation(widgetDivartificial, folderArtificial, modelName);
+            }
 
-            // Función unificada para cargar la animación
             function loadAnimation(widgetDiv, folder, modelName) {
                 if (modelName != null) {
                     new spine.SpineWidget(widgetDiv.id, {
@@ -126,7 +202,6 @@
                         fitToCanvas: true,
                         loop: true,
                         success: function(widget) {
-                            // Configuración común del éxito de carga
                             commonSuccess(widget, widgetDiv);
                         },
                         error: function(player, reason) {
@@ -145,39 +220,105 @@
                     widget.setSkinByName(defaultSkinName);
                 console.log(widget);
                 widgetDiv.style.position = "absolute";
-                widgetDiv.style.display = "block"; // Asegura que el widget sea visible
+                widgetDiv.style.display = "block";
                 widgetDiv.style.width = `${widget.bounds.size.x}px`;
                 widgetDiv.style.height = `${widget.bounds.size.y}px`;
             }
 
-// Inicialmente ocultar ambos divs de los widgets
             document.getElementById("spine-widget-spine").style.display = "none";
             document.getElementById("spine-widget-cutin").style.display = "none";
+            document.getElementById("spine-widget-artificial").style.display = "none";
 
             let btnLimpiar = document.getElementById("btnLimpiar");
 
-            // Evento de clic para el botón de limpiar
             btnLimpiar.addEventListener("click", function() {
                 limpiarWidgets();
             });
 
             function limpiarWidgets() {
-                // Obtén los div de los widgets
                 let widgetDivSpine = document.getElementById("spine-widget-spine");
                 let widgetDivCutIn = document.getElementById("spine-widget-cutin");
+                let widgetDivArtificial = document.getElementById("spine-widget-artificial");
 
-                // Limpia el contenido interno de cada div
                 widgetDivSpine.innerHTML = '';
                 widgetDivCutIn.innerHTML = '';
+                widgetDivArtificial.innerHTML = '';
 
-                // Opcional: Oculta los divs después de limpiarlos
                 widgetDivSpine.style.display = "none";
                 widgetDivCutIn.style.display = "none";
+                widgetDivArtificial.style.display = "none";
             }
+
+            let canvas = document.querySelector("canvas");
+
+            // Verificar si el canvas existe
+            if (canvas) {
+                aplicarEstiloYEventos(canvas);
+            } else {
+                // Si el canvas no existe inmediatamente, podría necesitar escuchar un evento
+                // o usar una mutación observer para detectar cuando se crea
+                // Esto es solo un ejemplo de cómo podrías implementar una espera para el canvas
+                const observer = new MutationObserver((mutations) => {
+                    for (let mutation of mutations) {
+                        if (mutation.addedNodes.length) {
+                            canvas = document.querySelector("canvas");
+                            if (canvas) {
+                                aplicarEstiloYEventos(canvas);
+                                observer.disconnect(); // Dejar de observar una vez encontrado el canvas
+                                break;
+                            }
+                        }
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+
+            var widgetContainer = document.getElementById("widget-container");
+
+            // Inicializa las variables para el seguimiento de la posición
+            var posX = 0, posY = 0, mouseX = 0, mouseY = 0;
+
+            widgetContainer.onmousedown = function(e) {
+                e.preventDefault(); // Prevenir cualquier acción por defecto del navegador
+
+                // Obtener la posición inicial del mouse
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Eventos para manejar el movimiento y el levantamiento del mouse
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            };
+
+            function elementDrag(e) {
+                // Calcular la nueva posición del cursor
+                posX = mouseX - e.clientX;
+                posY = mouseY - e.clientY;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Establecer la nueva posición del contenedor
+                widgetContainer.style.top = (widgetContainer.offsetTop - posY) + "px";
+                widgetContainer.style.left = (widgetContainer.offsetLeft - posX) + "px";
+            }
+
+            function closeDragElement() {
+                // Detener el movimiento cuando se suelta el botón del mouse
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+
+
+
             cargarOpcionesDesdeJsonSpine();
             cargarOpcionesDesdeJsonCutIn();
+            cargarOpcionesDesdeJsonArtificial();
         });
 
-    </script>
+
+</script>
+
+<script src="./js/move.js"></script>
+<script src="./js/mouse.js"></script>
 </body>
 </html>
